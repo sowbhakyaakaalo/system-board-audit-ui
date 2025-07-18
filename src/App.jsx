@@ -1,104 +1,100 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [image, setImage] = useState(null);
-  const [resultText, setResultText] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
   const [annotatedImage, setAnnotatedImage] = useState(null);
+  const [batteryStatus, setBatteryStatus] = useState('');
+  const [ledStatus, setLedStatus] = useState('');
+  const [streaming, setStreaming] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
   const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (streaming) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode } }).then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      });
+    }
+  }, [streaming, facingMode]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    setImage(URL.createObjectURL(file));
+    setImagePreview(URL.createObjectURL(file));
+    setAnnotatedImage(null);
     await sendToBackend(file);
+  };
+
+  const captureImage = () => {
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+      setImagePreview(URL.createObjectURL(file));
+      sendToBackend(file);
+    }, 'image/jpeg');
   };
 
   const sendToBackend = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-
-    const response = await fetch('http://127.0.0.1:8000/predict', {
+    const response = await fetch('https://system-board-audit-backend.onrender.com/predict/', {
       method: 'POST',
       body: formData,
     });
-
     const data = await response.json();
-
-    // Handle status
-    const boxes = data?.boxes || [];
-    if (boxes.length === 0) {
-      setResultText('Not Detected ⚠️');
-    } else {
-      const classes = boxes.map(box => box.class.toLowerCase());
-      if (classes.includes('disconnect')) {
-        setResultText('Disconnected ❌');
-      } else if (classes.includes('connect')) {
-        setResultText('Connected ✅');
-      } else {
-        setResultText('Not Detected ⚠️');
-      }
-    }
-
+    setBatteryStatus(data.battery_status);
+    setLedStatus(data.led_status);
     setAnnotatedImage(`data:image/png;base64,${data.image}`);
   };
 
-  const handleCamera = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode },
-    });
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-    }
-  };
-
-  const switchCamera = () => {
-    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
-    handleCamera();
-  };
-
-  const captureAndDetect = async () => {
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    canvas.toBlob((blob) => {
-      const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
-      setImage(URL.createObjectURL(file));
-      sendToBackend(file);
-    }, 'image/jpeg');
+  const getStatusColor = (status) => {
+    if (status === 'Connected') return 'green';
+    if (status === 'Disconnected') return 'red';
+    return 'orange';
   };
 
   return (
     <div className="app-container">
-      <h1>🔍 System Board Audit</h1>
-
+      <h1>System Board Audit</h1>
       <div className="button-group">
         <label className="btn">
           Upload & Detect
           <input type="file" accept="image/*" hidden onChange={handleFileChange} />
         </label>
-
-        <button className="btn" onClick={handleCamera}>Camera</button>
-        <button className="btn" onClick={switchCamera}>Switch Camera</button>
+        <button className="btn" onClick={captureImage}>Capture & Detect</button>
+        <button className="btn" onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')}>
+          Switch Camera
+        </button>
       </div>
-
       <div className="preview-container">
-        {image && !annotatedImage && <img src={image} alt="Preview" className="preview" />}
-        {annotatedImage && <img src={annotatedImage} alt="Detected" className="preview" />}
-        <video ref={videoRef} autoPlay playsInline className="preview" style={{ display: image ? "none" : "block" }}></video>
+        {annotatedImage ? (
+          <img src={annotatedImage} alt="Detected" className="preview" />
+        ) : imagePreview ? (
+          <img src={imagePreview} alt="Preview" className="preview" />
+        ) : (
+          <video ref={videoRef} autoPlay playsInline className="preview" />
+        )}
       </div>
-
-      <div className={`result-box ${resultText.toLowerCase().includes('connected') ? 'green' : resultText.toLowerCase().includes('disconnected') ? 'red' : 'orange'}`}>
-        Battery Cable: {resultText}
+      <div className="results-container">
+        {batteryStatus && (
+          <div className={`result-box ${getStatusColor(batteryStatus)}`}>
+            Battery Cable: {batteryStatus}
+          </div>
+        )}
+        {ledStatus && (
+          <div className={`result-box ${getStatusColor(ledStatus)}`}>
+            LED Board Cable: {ledStatus}
+          </div>
+        )}
       </div>
-
-      {videoRef.current?.srcObject && (
-        <button className="detect-btn" onClick={captureAndDetect}>📷 Capture & Detect</button>
-      )}
     </div>
   );
 }
