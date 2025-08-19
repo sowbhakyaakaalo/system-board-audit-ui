@@ -1,34 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
+import { CameraControls } from './components/CameraControls';
+import { DetectionCard } from './components/DetectionCard';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://system-board-audit-backend.onrender.com';
 
 function App() {
   const [imagePreview, setImagePreview] = useState(null);
   const [annotatedImage, setAnnotatedImage] = useState(null);
+
+  // 4 statuses
   const [batteryStatus, setBatteryStatus] = useState('');
   const [ledStatus, setLedStatus] = useState('');
+  const [displayStatus, setDisplayStatus] = useState('');
+  const [fanStatus, setFanStatus] = useState('');
+
+  const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
-  const [facingMode, setFacingMode] = useState("environment");
+  const [facingMode, setFacingMode] = useState('environment');
   const videoRef = useRef(null);
 
   useEffect(() => {
-    if (streaming) {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode } }).then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      });
-    }
+    if (!streaming) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode } })
+      .then((stream) => { if (videoRef.current) videoRef.current.srcObject = stream; })
+      .catch(console.error);
   }, [streaming, facingMode]);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const startCamera = () => setStreaming(true);
+  const switchCamera = () => setFacingMode(prev => (prev === 'user' ? 'environment' : 'user'));
+
+  const handleUpload = async (file) => {
     setImagePreview(URL.createObjectURL(file));
     setAnnotatedImage(null);
     await sendToBackend(file);
   };
 
   const captureImage = () => {
+    if (!videoRef.current) return;
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
@@ -43,37 +52,42 @@ function App() {
   };
 
   const sendToBackend = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await fetch('https://system-board-audit-backend.onrender.com/predict/', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await response.json();
-    setBatteryStatus(data.battery_status);
-    setLedStatus(data.led_status);
-    setAnnotatedImage(`data:image/png;base64,${data.image}`);
-  };
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API_URL}/predict/`, { method: 'POST', body: formData });
+      const data = await res.json();
 
-  const getStatusColor = (status) => {
-    if (status === 'Connected') return 'green';
-    if (status === 'Disconnected') return 'red';
-    return 'orange';
+      setBatteryStatus(data.battery_status || 'Not Detected');
+      setLedStatus(data.led_status || 'Not Detected');
+      setDisplayStatus(data.display_status || 'Not Detected');
+      setFanStatus(data.fan_status || 'Not Detected');
+
+      if (data.image) setAnnotatedImage(`data:image/png;base64,${data.image}`);
+    } catch (e) {
+      console.error(e);
+      setBatteryStatus('Not Detected');
+      setLedStatus('Not Detected');
+      setDisplayStatus('Not Detected');
+      setFanStatus('Not Detected');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="app-container">
       <h1>System Board Audit</h1>
-      <div className="button-group">
-        <label className="btn">
-          Upload & Detect
-          <input type="file" accept="image/*" hidden onChange={handleFileChange} />
-        </label>
-        <button className="btn" onClick={captureImage}>Capture & Detect</button>
-        <button className="btn" onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')}>
-          Switch Camera
-        </button>
-      </div>
+
+      <CameraControls
+        onStartCamera={startCamera}
+        onSwitchCamera={switchCamera}
+        onCapture={captureImage}
+        onUpload={handleUpload}
+        loading={loading}
+      />
+
       <div className="preview-container">
         {annotatedImage ? (
           <img src={annotatedImage} alt="Detected" className="preview" />
@@ -83,17 +97,12 @@ function App() {
           <video ref={videoRef} autoPlay playsInline className="preview" />
         )}
       </div>
+
       <div className="results-container">
-        {batteryStatus && (
-          <div className={`result-box ${getStatusColor(batteryStatus)}`}>
-            Battery Cable: {batteryStatus}
-          </div>
-        )}
-        {ledStatus && (
-          <div className={`result-box ${getStatusColor(ledStatus)}`}>
-            LED Board Cable: {ledStatus}
-          </div>
-        )}
+        <DetectionCard title="Battery Cable" status={batteryStatus} />
+        <DetectionCard title="LED Board Cable" status={ledStatus} />
+        <DetectionCard title="Display Cable" status={displayStatus} />
+        <DetectionCard title="Fan Cable" status={fanStatus} />
       </div>
     </div>
   );
