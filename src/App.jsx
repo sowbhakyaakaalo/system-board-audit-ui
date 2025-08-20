@@ -9,11 +9,15 @@ function App() {
   const [imagePreview, setImagePreview] = useState(null);
   const [annotatedImage, setAnnotatedImage] = useState(null);
 
-  // 4 statuses
+  // 8 statuses
   const [batteryStatus, setBatteryStatus] = useState('');
   const [ledStatus, setLedStatus] = useState('');
   const [displayStatus, setDisplayStatus] = useState('');
   const [fanStatus, setFanStatus] = useState('');
+  const [speakerStatus, setSpeakerStatus] = useState('');
+  const [wifiStatus, setWifiStatus] = useState('');
+  const [ethernetStatus, setEthernetStatus] = useState('');
+  const [ramStatus, setRamStatus] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
@@ -59,10 +63,15 @@ function App() {
       const res = await fetch(`${API_URL}/predict/`, { method: 'POST', body: formData });
       const data = await res.json();
 
+      // map all 8
       setBatteryStatus(data.battery_status || 'Not Detected');
       setLedStatus(data.led_status || 'Not Detected');
       setDisplayStatus(data.display_status || 'Not Detected');
       setFanStatus(data.fan_status || 'Not Detected');
+      setSpeakerStatus(data.speaker_status || 'Not Detected');
+      setWifiStatus(data.wifi_status || 'Not Detected');
+      setEthernetStatus(data.ethernet_status || 'Not Detected');
+      setRamStatus(data.ram_status || 'Not Detected');
 
       if (data.image) setAnnotatedImage(`data:image/png;base64,${data.image}`);
     } catch (e) {
@@ -71,6 +80,10 @@ function App() {
       setLedStatus('Not Detected');
       setDisplayStatus('Not Detected');
       setFanStatus('Not Detected');
+      setSpeakerStatus('Not Detected');
+      setWifiStatus('Not Detected');
+      setEthernetStatus('Not Detected');
+      setRamStatus('Not Detected');
     } finally {
       setLoading(false);
     }
@@ -103,9 +116,14 @@ function App() {
         <DetectionCard title="LED Board Cable" status={ledStatus} />
         <DetectionCard title="Display Cable" status={displayStatus} />
         <DetectionCard title="Fan Cable" status={fanStatus} />
+        <DetectionCard title="Speaker Cable" status={speakerStatus} />
+        <DetectionCard title="WiFi Cable" status={wifiStatus} />
+        <DetectionCard title="Ethernet Cable" status={ethernetStatus} />
+        <DetectionCard title="RAM Slot" status={ramStatus} />
       </div>
     </div>
   );
 }
 
 export default App;
+
