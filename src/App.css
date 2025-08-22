@@ -1,3 +1,9 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f0f2f5;
+}
+
 .app-container {
   font-family: Arial, sans-serif;
   text-align: center;
@@ -16,16 +22,16 @@ h1 {
 .button-group {
   display: flex;
   justify-content: center;
-  gap: 16px; /* spacing between buttons */
-  flex-wrap: wrap; /* wrap to next line after 4 buttons */
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
 .btn {
   background-color: #007bff;
   color: white;
-  width: 180px;     /* equal width */
-  height: 50px;     /* equal height */
+  width: 180px;
+  height: 50px;
   font-size: 16px;
   font-weight: bold;
   border: none;
@@ -36,7 +42,7 @@ h1 {
 
 .btn:hover {
   background-color: #0056b3;
-  transform: scale(1.05); /* smooth hover */
+  transform: scale(1.05);
 }
 
 .btn:disabled,
@@ -46,7 +52,7 @@ h1 {
   cursor: not-allowed;
 }
 
-/* Preview image/video container */
+/* Preview */
 .preview-container {
   margin-top: 20px;
   display: flex;
@@ -60,41 +66,29 @@ h1 {
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-/* Detection result cards */
-.results-container {
-  display: flex;
-  justify-content: center;
+/* Detection result grid */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 per row */
   gap: 12px;
-  flex-wrap: wrap;
   margin-top: 20px;
+  justify-items: center;
 }
 
 .result-box {
-  font-size: 14px;     /* smaller than buttons */
+  font-size: 14px;
   font-weight: bold;
+  width: 180px; 
+  height: 50px;
   padding: 10px;
   border-radius: 10px;
-  min-width: 180px;    /* same width as buttons for symmetry */
-  height: 50px;        /* same height for alignment */
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-sizing: border-box;
 }
 
 /* Status colors */
-.green {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.red {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.orange {
-  background-color: #fff3cd;
-  color: #856404;
-}
+.green { background-color: #d4edda; color: #155724; }
+.red { background-color: #f8d7da; color: #721c24; }
+.orange { background-color: #fff3cd; color: #856404; }
