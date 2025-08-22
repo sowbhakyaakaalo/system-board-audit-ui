@@ -1,6 +1,12 @@
 import React from 'react';
 
-export const CameraControls = ({ onStartCamera, onSwitchCamera, onCapture, onUpload, loading }) => {
+export const CameraControls = ({
+  onStartCamera,
+  onSwitchCamera,
+  onCapture,
+  onUpload,
+  loading
+}) => {
   return (
     <div className="button-group">
       <label className={`btn ${loading ? 'disabled' : ''}`}>
