@@ -28,3 +28,4 @@ export const CameraControls = ({ onStartCamera, onSwitchCamera, onCapture, onUpl
     </div>
   );
 };
+
