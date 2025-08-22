@@ -47,20 +47,21 @@ h1 {
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-.results-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 per row */
+  gap: 15px;
   margin-top: 20px;
+  justify-items: center;
 }
 
 .result-box {
   font-size: 16px;
   font-weight: bold;
-  padding: 10px;
+  padding: 12px;
   border-radius: 10px;
-  min-width: 200px;
+  min-width: 160px;
+  min-height: 80px;
   text-align: center;
 }
 
