@@ -111,7 +111,7 @@ function App() {
         )}
       </div>
 
-      {/* 8 Results in two rows of 4 each */}
+      {/* 8 Results in 2 rows of 4 */}
       <div className="results-grid">
         <DetectionCard title="Battery Cable" status={batteryStatus} />
         <DetectionCard title="LED Board Cable" status={ledStatus} />
@@ -127,3 +127,4 @@ function App() {
 }
 
 export default App;
+
