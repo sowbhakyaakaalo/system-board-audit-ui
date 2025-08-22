@@ -111,20 +111,19 @@ function App() {
         )}
       </div>
 
-      {/* 8 Results in 2 rows of 4 */}
+      {/* Two rows of four cards (equal size, color by status) */}
       <div className="results-grid">
-        <DetectionCard title="Battery Cable" status={batteryStatus} />
-        <DetectionCard title="LED Board Cable" status={ledStatus} />
-        <DetectionCard title="Display Cable" status={displayStatus} />
-        <DetectionCard title="Fan Cable" status={fanStatus} />
-        <DetectionCard title="Coin Cell" status={coinCellStatus} />
-        <DetectionCard title="Speaker Cable" status={speakerStatus} />
-        <DetectionCard title="Touch Pad Cable" status={touchPadStatus} />
-        <DetectionCard title="WLAN" status={wlanStatus} />
+        <DetectionCard title="Battery Cable"     status={batteryStatus} />
+        <DetectionCard title="LED Board Cable"   status={ledStatus} />
+        <DetectionCard title="Display Cable"     status={displayStatus} />
+        <DetectionCard title="Fan Cable"         status={fanStatus} />
+        <DetectionCard title="Coin Cell"         status={coinCellStatus} />
+        <DetectionCard title="Speaker Cable"     status={speakerStatus} />
+        <DetectionCard title="Touch Pad Cable"   status={touchPadStatus} />
+        <DetectionCard title="WLAN"              status={wlanStatus} />
       </div>
     </div>
   );
 }
 
 export default App;
-
